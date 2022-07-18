@@ -3,6 +3,7 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
+using R6ThreadECS.World;
 using UnityEngine;
 
 namespace R6ThreadECS.Examples
@@ -13,10 +14,11 @@ namespace R6ThreadECS.Examples
 
         private void Awake()
         {
-            _executor = new R6EcsExecutor();
-            _executor.AddWorld(new TestWorldInitializator());
+            _executor = new R6EcsExecutor()
+                .AddWorld(new TestWorldInitializator().GetWorld())
+                .AddWorld(new HighPriorityWorldInitializator().GetWorld())
+                .AddWorld(new LowPriorityWorldInitializator().GetWorld());
         }
-
         private void Start()
         {
             _executor.Init();

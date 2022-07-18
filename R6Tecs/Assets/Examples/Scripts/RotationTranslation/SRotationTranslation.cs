@@ -11,9 +11,9 @@ using UnityEngine;
 namespace R6ThreadECS.Examples
 {
     [Filter(typeof(CCollisionEvent), FilterAccessType.ReadOnly, FilterFunctionalityType.Exclude)]
-    [Filter(typeof(CTransform), FilterAccessType.ReadWrite)]
-    [R6SystemExecutionOrder(10)]
-    public class STransformTranslation : R6EcsSystem, IR6FixedUpdateSystem
+    [Filter(typeof(CRotation), FilterAccessType.ReadWrite)]
+    [R6SystemExecutionOrder(100)]
+    public class SRotationTranslation : R6EcsSystem, IR6FixedUpdateSystem
     {
         public int Frame { get; }
         
@@ -21,8 +21,8 @@ namespace R6ThreadECS.Examples
         {
             foreach (R6Entity entity in Filter)
             {
-                CTransform transform = entity.GetComponent<CTransform>();
-                entity.SetComponent(new CTransform(transform.Position + Vector3.forward));
+                CRotation rotation = entity.GetComponent<CRotation>();
+                entity.SetComponent(new CRotation(rotation.Quaternion * Quaternion.Euler(Vector3.left)));
             }
         }
     }

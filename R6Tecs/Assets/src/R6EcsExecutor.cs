@@ -4,6 +4,9 @@
 // ----------------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
+using R6ThreadECS.Attributes;
 using R6ThreadECS.Init;
 using R6ThreadECS.World;
 
@@ -14,24 +17,24 @@ namespace R6ThreadECS
     /// </summary>
     public class R6EcsExecutor
     {
-        private List<R6World> _worlds;
+        private SortedList<int, R6World> _worlds;
 
-        public List<R6World> Worlds
+        public SortedList<int, R6World> Worlds
         {
             get
             {
                 if (_worlds == null)
                 {
-                    _worlds = new List<R6World>();
+                    _worlds = new SortedList<int, R6World>();
                 }
 
                 return _worlds;
             }
         }
 
-        public R6EcsExecutor AddWorld(R6WorldInitializator worldInitializator)
+        public R6EcsExecutor AddWorld([NotNull] R6World world)
         {
-            Worlds.Add(new R6World(worldInitializator));
+            Worlds.Add(world.Priority, world);
             
             return this;
         }
@@ -40,12 +43,16 @@ namespace R6ThreadECS
 
         private void PreInit()
         {
-            
+            foreach (var r6World in Worlds.Values)
+            {
+                r6World.Initialize();
+            }
         }
 
         public void Init()
         {
             PreInit();
+            
             
         }
 

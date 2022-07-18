@@ -7,23 +7,23 @@ using UnityEngine;
 
 namespace R6ThreadECS.Examples
 {
-    public struct CTransform : IR6EcsComponent<CTransform>
+    public struct CRotation : IR6EcsComponent<CRotation>
     {
-        public Vector3 Position;
+        public Quaternion Quaternion;
         
-        public CTransform(Vector3 position)
+        public CRotation(Quaternion quaternion)
         {
-            Position = position;
+            Quaternion = quaternion;
         }
 
-        public void Write(CTransform other)
+        public void Write(CRotation other)
         {
-            Position = other.Position;
+            Quaternion = other.Quaternion;
         }
 
-        public CTransform Read()
+        public CRotation Read()
         {
-            return new CTransform(Position);
+            return new CRotation(Quaternion);
         }
     }
 }

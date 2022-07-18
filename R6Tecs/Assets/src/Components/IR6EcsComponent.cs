@@ -5,13 +5,18 @@
 
 namespace R6ThreadECS
 {
+    public interface IR6EcsComponent
+    {
+        
+    }
+    
     /// <summary>
     /// base for all components
     /// </summary>
-    public interface IR6EcsComponent<T> 
+    public interface IR6EcsComponent<T> : IR6EcsComponent
         where T : struct, IR6EcsComponent<T>
     {
-        void Write(T component);
+        void Write(T other);
         
         T Read();
     }
