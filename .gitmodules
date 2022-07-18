@@ -1,0 +1,3 @@
+[submodule "R6Tecs/Assets/ThirdParty/R6Tasks"]
+	path = R6Tecs/Assets/ThirdParty/R6Tasks
+	url = https://github.com/RFS-6ro/R6Tasks.git
