@@ -1,0 +1,5 @@
+﻿Attributes for ordering execution
+main thread systems
+Differ "last-data" and "Any-data" systems
+store components data for few frames before
+
