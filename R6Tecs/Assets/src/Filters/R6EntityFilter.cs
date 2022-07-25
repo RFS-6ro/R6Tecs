@@ -3,8 +3,10 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using R6ThreadECS.Entity;
 
 namespace R6ThreadECS.Filters
@@ -21,13 +23,16 @@ namespace R6ThreadECS.Filters
             Count = 0;
         }
 
+        [PublicAPI]
         public void Lock()
         {
             _isLocked = true;
         }
         
+        [PublicAPI]
         public int Count { get; private set; }
 
+        [PublicAPI]
         public void Add(R6Entity newEntity)
         {
             if (_isLocked)
@@ -44,6 +49,7 @@ namespace R6ThreadECS.Filters
             _entities[Count] = newEntity;
         }
 
+        [PublicAPI]
         public bool Contains(R6Entity item) => _entities.Contains(item);
         
         public IEnumerator<R6Entity> GetEnumerator()
@@ -80,16 +86,6 @@ namespace R6ThreadECS.Filters
 
                 _entities[index] = value;
             }
-        }
-
-        private void EnsureLength(int newLength)
-        {
-            
-        }
-
-        private void Resize()
-        {
-            
         }
     }
 }

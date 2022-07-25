@@ -13,28 +13,30 @@ using R6Tasks.Parallelizing;
 using R6Tasks.Utils;
 using R6ThreadECS.Attributes;
 using R6ThreadECS.Entity;
+using R6ThreadECS.ExecutionStrategy;
 using R6ThreadECS.Systems;
 
 namespace R6ThreadECS.World
 {
     public class R6World : IDisposable
     {
-        private List<R6EcsSystem> _allSystems;
+        private readonly List<R6EcsSystem> _allSystems;
         private Dictionary<int, List<FilterAttribute>> _filters;
-        private SortedList<int, int> _sortedSystems;
+
+        private List<int> _componentsTypes;
 
         private List<R6Entity> _entities;
         private List<IR6EcsComponent> _components;
 
-        private SystemsInfo _preInitSystems;
-        private SystemsInfo _initSystems;
-        private SystemsInfo _updateSystems;
-        private SystemsInfo _fixedUpdateSystems;
-        private SystemsInfo _lateUpdateSystems;
+        private R6ExecutionStrategy _strategy;
+        
+        private readonly SystemsInfo _preInitSystems;
+        private readonly SystemsInfo _initSystems;
+        private readonly SystemsInfo _updateSystems;
+        private readonly SystemsInfo _fixedUpdateSystems;
+        private readonly SystemsInfo _lateUpdateSystems;
 
         private bool _lock = false;
-
-        public int Priority { get; private set; }= 0;
         
         public R6World()
         {
@@ -49,8 +51,25 @@ namespace R6ThreadECS.World
             _components = new List<IR6EcsComponent>();
             
             _filters = new Dictionary<int, List<FilterAttribute>>();
-            
-            _sortedSystems = new SortedList<int, int>();
+        }
+
+        public int Priority { get; private set; } = 0;
+
+        public R6ExecutionStrategy Strategy
+        {
+            get
+            {
+                if (_strategy == null)
+                {
+                    _strategy = null;
+                }
+
+                return _strategy;
+            }
+            private set
+            {
+                _strategy = value;
+            }
         }
 
         [PublicAPI]
@@ -66,10 +85,35 @@ namespace R6ThreadECS.World
         {
             if (_lock)
             {
+#if DEBUG
+                throw new NotSupportedException();       
+#endif
                 return;
             }
 
             Priority = value;
+        }
+
+        [PublicAPI]
+        public void SetExecutionStrategy(R6ExecutionStrategy strategy)
+        {
+            if (_lock)
+            {
+#if DEBUG
+                throw new NotSupportedException();       
+#endif
+                return;
+            }
+
+            if (strategy == null)
+            {
+#if DEBUG
+                throw new ArgumentNullException(nameof(strategy));       
+#endif
+                return;
+            }
+            
+            Strategy = strategy;
         }
 
         private void InitializeSystems()
@@ -116,11 +160,37 @@ namespace R6ThreadECS.World
         }
 
         [PublicAPI]
+        public R6World AddParallelGroup(R6ParallelGroup parallelGroup)
+        {
+            if (_lock)
+            {
+#if DEBUG
+                throw new NotSupportedException();       
+#endif
+                return this;
+            }
+
+            parallelGroup.SetOwner(this);
+
+            throw new NotImplementedException();
+            // int index = _allSystems.Count;
+            // _allSystems.Add(parallelGroup);
+            //
+            // HandleType(parallelGroup, index);
+            // HandleAttributes<T>(index);
+
+            return this;
+        }
+
+        [PublicAPI]
         public R6World AddSystem<T>(T system)
             where T : R6EcsSystem, IR6EcsSystem
         {
             if (_lock)
             {
+#if DEBUG
+                throw new NotSupportedException();       
+#endif
                 return this;
             }
 
@@ -138,11 +208,12 @@ namespace R6ThreadECS.World
         private void HandleType<T>(T system, int globalIndex)
             where T : R6EcsSystem, IR6EcsSystem
         {
+            // ReSharper disable once ConvertIfStatementToSwitchStatement
             if (system is IR6PreInitSystem r6PreInitSystem)
             {
                 _preInitSystems.Add(globalIndex, r6PreInitSystem.PreInit);
             }
-            
+
             if (system is IR6InitSystem r6InitSystem)
             {
                 _initSystems.Add(globalIndex, r6InitSystem.Init);
@@ -171,7 +242,6 @@ namespace R6ThreadECS.World
             object[] attributes = memberInfo.GetCustomAttributes(true);
             
             SetFilters(attributes, index);
-            SetExecutionOrder(attributes, index);
         }
 
         private void SetFilters(object[] attributes, int index)
@@ -188,24 +258,6 @@ namespace R6ThreadECS.World
             
             _filters.Add(index, filterAttributes);
         }
-
-        private void SetExecutionOrder(object[] attributes, int index)
-        {
-            IEnumerable<R6SystemExecutionOrderAttribute> executionAttributes = attributes
-                .Where((attribute) => attribute is R6SystemExecutionOrderAttribute)
-                .Select((attribute) => ((R6SystemExecutionOrderAttribute) attribute));
-
-            R6SystemExecutionOrderAttribute orderAttribute = executionAttributes.FirstOrDefault();
-
-            if (orderAttribute == null)
-            {
-                _sortedSystems.Add(0, index);
-            }
-            else
-            {
-                _sortedSystems.Add(orderAttribute.Order, index);
-            }
-        }
         
         [PublicAPI]
         public R6World AddOneFrameComponent<T>()
@@ -213,6 +265,9 @@ namespace R6ThreadECS.World
         {
             if (_lock)
             {
+#if DEBUG
+                throw new NotSupportedException();       
+#endif
                 return this;
             }
             
@@ -221,6 +276,7 @@ namespace R6ThreadECS.World
             return this;
         }
 
+        [PublicAPI]
         public bool TryGetComponent<T>(int componentId, out T? r6EcsComponent) 
             where T : struct, IR6EcsComponent<T>
         {
@@ -284,19 +340,10 @@ namespace R6ThreadECS.World
             
             private void SortLocalList()
             {
-                List<int> localSorted = new List<int>(SystemIds.Count);
-            
-                foreach (var item in _world._sortedSystems.Values)
-                {
-                    if (SystemIds.Contains(item))
-                    {
-                        localSorted.Add(item);
-                        //reduce iteration count
-                        SystemIds.Remove(item);
-                    }
-                }
-
-                SystemIds = localSorted;
+                // List<int> localSorted = new List<int>(SystemIds.Count);
+                //
+                //
+                // SystemIds = localSorted;
             }
 
             private void BuildDependencies()

@@ -13,7 +13,6 @@ namespace R6ThreadECS.Examples
     [Filter(typeof(CTransform), FilterAccessType.ReadWrite)]
     [Filter(typeof(CRotation), FilterAccessType.ReadWrite)]
     [Filter(typeof(CCollisionEvent), FilterAccessType.ReadOnly)]
-    [R6SystemExecutionOrder(-10)]
     public class SCollisionHandler : R6EcsSystem, IR6FixedUpdateSystem
     {
         public int Frame { get; }

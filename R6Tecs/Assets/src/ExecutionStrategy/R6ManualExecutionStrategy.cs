@@ -3,18 +3,13 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
-using System;
-
-namespace R6ThreadECS.Attributes
+namespace R6ThreadECS.ExecutionStrategy
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class R6SystemExecutionOrderAttribute : Attribute
+    public class R6ManualExecutionStrategy : R6ExecutionStrategy
     {
-        public readonly int Order;
-
-        public R6SystemExecutionOrderAttribute(int order)
+        public override void Run()
         {
-            Order = order;
+            throw new System.NotImplementedException();
         }
     }
 }

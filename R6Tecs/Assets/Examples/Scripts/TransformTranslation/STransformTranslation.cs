@@ -12,10 +12,14 @@ namespace R6ThreadECS.Examples
 {
     [Filter(typeof(CCollisionEvent), FilterAccessType.ReadOnly, FilterFunctionalityType.Exclude)]
     [Filter(typeof(CTransform), FilterAccessType.ReadWrite)]
-    [R6SystemExecutionOrder(10)]
-    public class STransformTranslation : R6EcsSystem, IR6FixedUpdateSystem
+    public class STransformTranslation : R6EcsSystem, IR6PreInitSystem, IR6FixedUpdateSystem
     {
         public int Frame { get; }
+
+        public void PreInit()
+        {
+            throw new System.NotImplementedException();
+        }
         
         public void FixedUpdate()
         {

@@ -3,12 +3,10 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
-using R6ThreadECS.World;
-
-namespace R6ThreadECS.Init
+namespace R6ThreadECS.Utils.Tests
 {
-    public abstract class R6WorldInitializator
+    public class SystemGraphTest
     {
-        public abstract R6World GetWorld();
+        
     }
 }

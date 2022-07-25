@@ -4,13 +4,14 @@
 // ----------------------------------------------------------------------------
 
 using R6ThreadECS.Init;
+using R6ThreadECS.Systems;
 using R6ThreadECS.World;
 
 namespace R6ThreadECS.Examples
 {
-    public class TestWorldInitializator : R6WorldInitializator
+    public class TestWorldInitializator : IR6WorldInitializator
     {
-        public override R6World GetWorld()
+        public R6World GetWorld()
         {
             R6World world = new R6World()
                 .AddSystem(new STransformTranslation())
@@ -23,10 +24,24 @@ namespace R6ThreadECS.Examples
             return world;
         }
     }
-    
-    public class HighPriorityWorldInitializator : R6WorldInitializator
+    public class TestWorldInitializatorWithParallelGroups : IR6WorldInitializator
     {
-        public override R6World GetWorld()
+        public R6World GetWorld()
+        {
+            R6World world = new R6World()
+                .AddParallelGroup(new R6ParallelGroup(new STransformTranslation(), new SRotationTranslation()))
+                .AddSystem(new SCollisionHandler())
+                .AddOneFrameComponent<CCollisionEvent>();
+
+            world.SetPriority(10);
+
+            return world;
+        }
+    }
+    
+    public class HighPriorityWorldInitializator : IR6WorldInitializator
+    {
+        public R6World GetWorld()
         {
             R6World world = new R6World()
                 .AddSystem(new STransformTranslation())
@@ -40,9 +55,9 @@ namespace R6ThreadECS.Examples
         }
     }
     
-    public class LowPriorityWorldInitializator : R6WorldInitializator
+    public class LowPriorityWorldInitializator : IR6WorldInitializator
     {
-        public override R6World GetWorld()
+        public R6World GetWorld()
         {
             R6World world = new R6World()
                 .AddSystem(new STransformTranslation())

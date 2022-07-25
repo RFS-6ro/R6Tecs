@@ -12,7 +12,6 @@ namespace R6ThreadECS.Examples
 {
     [Filter(typeof(CCollisionEvent), FilterAccessType.ReadOnly, FilterFunctionalityType.Exclude)]
     [Filter(typeof(CRotation), FilterAccessType.ReadWrite)]
-    [R6SystemExecutionOrder(100)]
     public class SRotationTranslation : R6EcsSystem, IR6FixedUpdateSystem
     {
         public int Frame { get; }

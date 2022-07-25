@@ -20,4 +20,10 @@ namespace R6ThreadECS
         
         T Read();
     }
+
+    public interface IR6ResetEcsComponent<T> : IR6EcsComponent<T>
+        where T : struct, IR6EcsComponent<T>
+    {
+        void Reset();
+    }
 }

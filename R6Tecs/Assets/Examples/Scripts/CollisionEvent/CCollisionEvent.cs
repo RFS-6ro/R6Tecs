@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace R6ThreadECS.Examples
 {
-    public struct CCollisionEvent : IR6EcsComponent<CCollisionEvent>
+    public struct CCollisionEvent : IR6ResetEcsComponent<CCollisionEvent>
     {
         public GameObject First;
         public GameObject Second;
@@ -30,6 +30,13 @@ namespace R6ThreadECS.Examples
         public CCollisionEvent Read()
         {
             return new CCollisionEvent(First, Second, Collision);
+        }
+
+        public void Reset()
+        {
+            First = null;
+            Second = null;
+            Collision = null;
         }
     }
 }
