@@ -37,6 +37,8 @@ namespace R6ThreadECS
             if (CacheLength > 0)
             {
             }
+
+            throw new NotImplementedException();
         }
     }
 }
