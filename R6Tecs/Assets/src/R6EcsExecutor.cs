@@ -52,8 +52,11 @@ namespace R6ThreadECS
         public void Init()
         {
             PreInit();
-            
-            
+
+            foreach (var r6World in Worlds.Values)
+            {
+                // r6World.
+            }
         }
 
         #endregion
@@ -62,22 +65,34 @@ namespace R6ThreadECS
 
         public void Update()
         {
-            
+            foreach (var r6World in Worlds.Values)
+            {
+                // r6World.
+            }
         }
 
         public void FixedUpdate()
         {
-            
+            foreach (var r6World in Worlds.Values)
+            {
+                // r6World.
+            }
         }
 
         public void LateUpdate()
         {
-            
+            foreach (var r6World in Worlds.Values)
+            {
+                // r6World.
+            }
         }
 
         public void OnDestroy()
         {
-            
+            foreach (var r6World in Worlds.Values)
+            {
+                r6World.Destroy();
+            }
         }
 
         #endregion

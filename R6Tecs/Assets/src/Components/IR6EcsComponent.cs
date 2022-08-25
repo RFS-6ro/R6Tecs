@@ -7,7 +7,6 @@ namespace R6ThreadECS
 {
     public interface IR6EcsComponent
     {
-        
     }
     
     /// <summary>

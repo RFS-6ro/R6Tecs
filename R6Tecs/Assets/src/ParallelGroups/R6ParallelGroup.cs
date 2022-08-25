@@ -5,6 +5,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using R6ThreadECS.World;
 
@@ -12,7 +14,7 @@ namespace R6ThreadECS.Systems
 {
     public class R6ParallelGroup : IEnumerable
     {
-        private R6EcsSystem[] _systems;
+        private List<R6SystemInfo> _systemInfos;
         
         public R6ParallelGroup(params R6EcsSystem[] systems)
         {
@@ -26,25 +28,66 @@ namespace R6ThreadECS.Systems
                 throw new ArgumentException("Group contain no elements", nameof(systems));
             }
             
-            _systems = systems;
-            
-            CheckDependencies();
-        }
+            // _systemInfos = systems.ToList();
 
-        private void CheckDependencies()
-        {
-            
+            if (!CheckDependencies())
+            {
+                throw new ArgumentException();
+            }
         }
 
         [PublicAPI]
-        public int Count => _systems.Length;
+        public bool TryAdd(R6EcsSystem r6EcsSystem)
+        {
+            // _systemInfos.Add(r6EcsSystem);
+
+            if (!CheckDependencies())
+            {
+                // _systemInfos.Remove(r6EcsSystem);
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool CheckDependencies()
+        {
+            HashSet<int> set = new HashSet<int>();
+            
+            foreach (var r6SystemInfo in _systemInfos)
+            {
+                foreach (var id in r6SystemInfo.Writes)
+                {
+                    if (!set.Add(id))
+                    {
+                        return false;
+                    }
+                }
+            }
+            
+            foreach (var r6SystemInfo in _systemInfos)
+            {
+                foreach (var id in r6SystemInfo.Reads)
+                {
+                    if (set.Contains(id))
+                    {
+                        return false;
+                    }
+                }   
+            }
+
+            return true;
+        }
+
+        [PublicAPI]
+        public int Count => _systemInfos.Count;
 
         [PublicAPI]
         public void SetOwner(R6World r6World)
         {
-            foreach (var r6EcsSystem in _systems)
+            foreach (var r6SystemInfo in _systemInfos)
             {
-                r6EcsSystem.SetOwner(r6World);
+                // r6SystemInfo.System.SetOwner(r6World);
             }
         }
         
@@ -56,8 +99,9 @@ namespace R6ThreadECS.Systems
                 {
                     throw new ArgumentOutOfRangeException();
                 }
+                throw new NotImplementedException();
 
-                return _systems[index];
+                // return _systemInfos[index];
             }
         }
 

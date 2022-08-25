@@ -4,6 +4,7 @@
 // ----------------------------------------------------------------------------
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace R6ThreadECS.Utils
 {
@@ -72,6 +73,31 @@ namespace R6ThreadECS.Utils
                 return false;
             }
 
+            for (int i = index; i < _length - 1; i++)
+            {
+                _items[i] = _items[i + 1];
+            }
+
+            _length--;
+            return true;
+        }
+
+        public bool Remove(int index, out T element)
+        {
+            element = default(T);
+            
+            if (_isIsLocked)
+            {
+                return false;
+            }
+            
+            if (index < 0 || index >= _length)
+            {
+                return false;
+            }
+
+            element = _items[index];
+            
             for (int i = index; i < _length; i++)
             {
                 _items[i] = _items[i + 1];
@@ -79,6 +105,19 @@ namespace R6ThreadECS.Utils
 
             _length--;
             return true;
+        }
+
+        public bool Has(T item)
+        {
+            foreach (var item1 in _items)
+            {
+                if (item1.Equals(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         
         public void Lock()
@@ -89,6 +128,12 @@ namespace R6ThreadECS.Utils
         public void Unlock()
         {
             _isIsLocked = false;
+        }
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public ref T GetRef(int index)
+        {
+            return ref _items[index];
         }
 
         public T this[int index]

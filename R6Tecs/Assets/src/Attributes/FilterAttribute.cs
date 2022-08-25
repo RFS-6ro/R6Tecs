@@ -11,7 +11,6 @@ namespace R6ThreadECS.Attributes
     public enum FilterAccessType
     {
         ReadOnly,
-        WriteOnly,
         ReadWrite
     }
 

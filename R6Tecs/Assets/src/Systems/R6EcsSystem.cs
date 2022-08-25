@@ -3,6 +3,7 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
+using System.Collections.Generic;
 using R6ThreadECS.Filters;
 using R6ThreadECS.World;
 
@@ -15,6 +16,12 @@ namespace R6ThreadECS.Systems
     {
         protected R6World World;
         protected R6EntityFilter Filter;
+
+
+
+        
+        
+        
         
         protected int CurrentExecutionFrame { get; private set; }
 

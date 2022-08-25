@@ -5,10 +5,14 @@
 
 namespace R6ThreadECS.Systems
 {
-    public interface IR6EcsSystem { }
+    public interface IR6EcsSystem
+    {
+        
+    }
     
     public interface IR6PreInitSystem : IR6EcsSystem
     {
+        
         void PreInit();
     }
     
@@ -28,6 +32,16 @@ namespace R6ThreadECS.Systems
     }
     
     public interface IR6LateUpdateSystem : IR6EcsSystem
+    {
+        void LateUpdate();
+    }
+    
+    public interface IR6DestroySystem : IR6EcsSystem
+    {
+        void LateUpdate();
+    }
+    
+    public interface IR6PostDestroySystem : IR6EcsSystem
     {
         void LateUpdate();
     }

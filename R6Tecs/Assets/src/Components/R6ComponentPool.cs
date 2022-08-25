@@ -4,41 +4,24 @@
 // ----------------------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
 using R6ThreadECS.Utils;
 
 namespace R6ThreadECS
 {
-    public class R6ComponentPool<T>
-        where T : struct, IR6EcsComponent<T>
+    public interface IR6ComponentPool
     {
-        private ResizeableArray<T> _components;
-        private ResizeableArray<int> _cache;
+        Type TargetType { get; }
+    }
 
+    public class R6ComponentPool<T> : PoolArray<T>, IR6ComponentPool where T : struct, IR6EcsComponent<T>
+    {
         private Type _targetType;
-        
-        public R6ComponentPool(int capacity = 256)
+
+        public R6ComponentPool(int capacity = 256, Func<int, T> getNewItem = null) : base(capacity, getNewItem)
         {
-            capacity = capacity <= 0 ? 256 : capacity;
-
-            _components = new ResizeableArray<T>(capacity);
-            _cache = new ResizeableArray<int>(capacity);
-
             _targetType = typeof(T);
         }
 
-        public int Length => _components.Length;
-        public int CacheLength => _cache.Capacity - _cache.Length;
-
         public Type TargetType => _targetType;
-
-        public int Instantiate()
-        {
-            if (CacheLength > 0)
-            {
-            }
-
-            throw new NotImplementedException();
-        }
     }
 }

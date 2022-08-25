@@ -5,11 +5,11 @@
 
 namespace R6ThreadECS.ExecutionStrategy
 {
-    public class R6ManualExecutionStrategy : R6ExecutionStrategy
+    public class R6AutoExecutionStrategy : R6ExecutionStrategy
     {
         public override void BuildExecutionOrder()
         {
-            throw new System.NotImplementedException();
+            
         }
 
         public override void Run()

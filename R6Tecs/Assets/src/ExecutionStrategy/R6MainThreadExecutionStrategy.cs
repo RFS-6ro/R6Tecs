@@ -7,6 +7,11 @@ namespace R6ThreadECS.ExecutionStrategy
 {
     public class R6MainThreadExecutionStrategy : R6ExecutionStrategy
     {
+        public override void BuildExecutionOrder()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public override void Run()
         {
             throw new System.NotImplementedException();

@@ -42,6 +42,16 @@ namespace R6ThreadECS.Utils.Tests
             {
                 Assert.IsTrue(array[i] == (i + 1));
             }
+
+            array.Remove(0, out int value);
+            Assert.IsTrue(array.Length == 3);
+            Assert.IsTrue(array.Capacity == 8);
+            Assert.IsTrue(value == 1);
+
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.IsTrue(array[i] == (i + 2));
+            }
             
             array.Lock();
 
