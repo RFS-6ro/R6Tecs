@@ -6,86 +6,70 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using R6ThreadECS.Entity;
+using R6ThreadECS.Utils;
 
 namespace R6ThreadECS.Filters
 {
-    public class R6EntityFilter
+    public class R6EntityFilter : IDisposable
     {
-        private bool _isLocked = false;
+        private bool _isDisposed = false;
         
-        private R6Entity[] _entities;
+        private GrowingArray<R6Entity> _entities;
         
-        public R6EntityFilter(int capacity)
+        public R6EntityFilter(int capacity = 256)
         {
-            _entities = new R6Entity[capacity];
-            Count = 0;
+            _entities = new GrowingArray<R6Entity>(capacity);
         }
 
+        [PublicAPI] 
+        public int Count => _entities.Count;
+
         [PublicAPI]
-        public void Lock()
-        {
-            _isLocked = true;
-        }
+        public bool IsDisposed => _isDisposed;
         
         [PublicAPI]
-        public int Count { get; private set; }
+        public bool IsLocked => _entities.IsLocked;
 
         [PublicAPI]
-        public void Add(R6Entity newEntity)
-        {
-            if (_isLocked)
-            {
-                throw new System.NotSupportedException();
-            }
-            
-            if (_entities.Length == Count) 
-            {
-                System.Array.Resize (ref _entities, _entities.Length << 1);
-            }
-
-            Count++;
-            _entities[Count] = newEntity;
-        }
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void Lock() => _entities.Lock();
 
         [PublicAPI]
-        public bool Contains(R6Entity item) => _entities.Contains(item);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void Add(R6Entity newEntity) => _entities.Add(newEntity);
+
+        [PublicAPI]
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public bool Contains(R6Entity item) => _entities.Has(item);
         
+        [PublicAPI]
         public IEnumerator<R6Entity> GetEnumerator()
         {
             return new R6EntityFilterEnumerator(this);
         }
 
+        [PublicAPI]
         public R6Entity this[int index]
         {
-            get
-            {
-                if (index < 0 || index >= Count)
-                {
-                    throw new System.ArgumentOutOfRangeException();
-                }
+            get => _entities[index];
+            set => _entities[index] = value;
+        }
 
-                return _entities[index];
-            }
-            set
+        [PublicAPI]
+        public void Dispose()
+        {
+            if (_isDisposed)
             {
-                if (_isLocked)
-                {
-#if DEBUG
-                    throw new System.NotSupportedException();
-#else
-                    return;
-#endif
-                }
-                
-                if (index < 0 || index >= Count)
-                {
-                    throw new System.ArgumentOutOfRangeException();
-                }
-
-                _entities[index] = value;
+                return;
             }
+
+            _entities.Dispose();
+            _entities = null;
+
+            _isDisposed = true;
         }
     }
 }

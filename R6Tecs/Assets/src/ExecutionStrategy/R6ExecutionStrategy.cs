@@ -3,6 +3,7 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using R6Tasks.Parallelizing;
@@ -11,13 +12,21 @@ using R6ThreadECS.Systems;
 
 namespace R6ThreadECS.ExecutionStrategy
 {
-    public abstract class R6ExecutionStrategy
+    public abstract class R6ExecutionStrategy : IDisposable
     {
         public static R6ExecutionStrategy MainThread = new R6MainThreadExecutionStrategy();
         public static R6ExecutionStrategy Manual = new R6ManualExecutionStrategy();
         public static R6ExecutionStrategy Auto = new R6AutoExecutionStrategy();
 
-
+        public abstract void Initialize();
+        
+        
+        
+        
+        
+        
+        
+        
         protected List<System.Type> types;
         protected List<R6EcsSystem> systems;
         protected List<R6SystemInfo> systemInfos;
@@ -80,5 +89,7 @@ namespace R6ThreadECS.ExecutionStrategy
         // {
         //     parallelizer?.Resolve();
         // }
+
+        public abstract void Dispose();
     }
 }

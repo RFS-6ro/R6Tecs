@@ -20,8 +20,8 @@ namespace R6ThreadECS.Examples
         {
             foreach (R6Entity entity in Filter)
             {
-                CRotation rotation = entity.GetComponent<CRotation>();
-                entity.SetComponent(new CRotation(rotation.Quaternion * Quaternion.Euler(Vector3.left)));
+                CRotation rotation = entity.Get<CRotation>();
+                entity.Set(new CRotation(rotation.Quaternion * Quaternion.Euler(Vector3.left)));
             }
         }
     }

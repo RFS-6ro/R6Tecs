@@ -3,11 +3,9 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
-using System;
 using R6ThreadECS.Init;
 using R6ThreadECS.Systems;
 using R6ThreadECS.World;
-using UnityEngine;
 
 namespace R6ThreadECS.Examples
 {

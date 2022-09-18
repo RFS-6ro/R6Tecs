@@ -15,6 +15,7 @@ using R6ThreadECS.Attributes;
 using R6ThreadECS.Entity;
 using R6ThreadECS.ExecutionStrategy;
 using R6ThreadECS.Systems;
+using R6ThreadECS.Utils;
 
 namespace R6ThreadECS.World
 {
@@ -133,9 +134,9 @@ namespace R6ThreadECS.World
         public R6Entity InstantiateEntity()
         {
             int id = 0;
-            R6Entity entity = new R6Entity(this, id);
+            // R6Entity entity = new R6Entity(this, id);
             throw new NotImplementedException();
-            return entity;
+            // return entity;
         }
 
         [PublicAPI]
@@ -147,10 +148,10 @@ namespace R6ThreadECS.World
             int startIndex = _components.Count;
             _components.AddRange(components);
             int endIndex = _components.Count;
-            entity.Components = new List<int>(endIndex - startIndex);
-            for (int i = 0; i < entity.Components.Count; i++)
+            entity.ComponentTypes = new ResizeableArray<int>(endIndex - startIndex);
+            for (int i = 0; i < entity.ComponentTypes.Count; i++)
             {
-                entity.Components.Add(startIndex + i);
+                entity.ComponentTypes.Add(startIndex + i);
             }
 
             UpdateFilters();
@@ -208,7 +209,7 @@ namespace R6ThreadECS.World
                 return this;
             }
 
-            parallelGroup.SetOwner(this);
+            // parallelGroup.SetOwner(this);
 
             throw new NotImplementedException();
             // int index = _allSystems.Count;
@@ -232,7 +233,7 @@ namespace R6ThreadECS.World
                 return this;
             }
 
-            system.SetOwner(this);
+            // system.SetOwner(this);
             
             int index = _allSystems.Count;
             _allSystems.Add(system);

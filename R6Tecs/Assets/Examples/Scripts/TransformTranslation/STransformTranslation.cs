@@ -25,8 +25,8 @@ namespace R6ThreadECS.Examples
         {
             foreach (R6Entity entity in Filter)
             {
-                CTransform transform = entity.GetComponent<CTransform>();
-                entity.SetComponent(new CTransform(transform.Position + Vector3.forward));
+                CTransform transform = entity.Get<CTransform>();
+                entity.Set(new CTransform(transform.Position + Vector3.forward));
             }
         }
     }

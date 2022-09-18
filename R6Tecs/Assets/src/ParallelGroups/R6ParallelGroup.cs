@@ -6,7 +6,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Annotations;
 using R6ThreadECS.World;
 
@@ -27,37 +26,82 @@ namespace R6ThreadECS.Systems
             {
                 throw new ArgumentException("Group contain no elements", nameof(systems));
             }
-            
-            // _systemInfos = systems.ToList();
+
+            _systemInfos = new List<R6SystemInfo>(systems.Length);
+            foreach (var r6EcsSystem in systems)
+            {
+                var systemInfo = CreateSystemInfo(r6EcsSystem);
+                if (systemInfo == null)
+                {
+                    throw new ArgumentException("System types are not supported");
+                }
+                _systemInfos.Add(systemInfo);
+            }
 
             if (!CheckDependencies())
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Group filters has collisions");
             }
         }
 
         [PublicAPI]
         public bool TryAdd(R6EcsSystem r6EcsSystem)
         {
-            // _systemInfos.Add(r6EcsSystem);
+            var systemInfo = CreateSystemInfo(r6EcsSystem);
+            if (systemInfo == null)
+            {
+                throw new ArgumentException("System type is not supported");
+            }
+            _systemInfos.Add(systemInfo);
 
             if (!CheckDependencies())
             {
-                // _systemInfos.Remove(r6EcsSystem);
+                _systemInfos.Remove(systemInfo);
                 return false;
             }
 
             return true;
         }
 
+        private R6SystemInfo CreateSystemInfo(R6EcsSystem r6EcsSystem)
+        {
+            Action targetAction;
+            IR6EcsSystem targetSystem = (IR6EcsSystem) r6EcsSystem;
+            switch (targetSystem)
+            {
+                case IR6PreInitSystem initSystem:
+                    targetAction = initSystem.PreInit;
+                    break;
+                case IR6InitSystem initSystem:
+                    targetAction = initSystem.Init;
+                    break;
+                case IR6UpdateSystem initSystem:
+                    targetAction = initSystem.Update;
+                    break;
+                case IR6FixedUpdateSystem initSystem:
+                    targetAction = initSystem.FixedUpdate;
+                    break;
+                case IR6LateUpdateSystem initSystem:
+                    targetAction = initSystem.LateUpdate;
+                    break;
+                default:
+                    return null;
+            }
+
+            return new R6SystemInfo(targetSystem, targetAction);
+        }
+
         private bool CheckDependencies()
         {
             HashSet<int> set = new HashSet<int>();
             
+            int length;
             foreach (var r6SystemInfo in _systemInfos)
             {
-                foreach (var id in r6SystemInfo.Writes)
+                length = r6SystemInfo.Writes.Count;
+                for (int i = 0; i < length; i++)
                 {
+                    int id = r6SystemInfo.Writes[i];
                     if (!set.Add(id))
                     {
                         return false;
@@ -67,14 +111,18 @@ namespace R6ThreadECS.Systems
             
             foreach (var r6SystemInfo in _systemInfos)
             {
-                foreach (var id in r6SystemInfo.Reads)
+                length = r6SystemInfo.Reads.Count;
+                for (int i = 0; i < length; i++)
                 {
+                    int id = r6SystemInfo.Reads[i];
                     if (set.Contains(id))
                     {
                         return false;
                     }
-                }   
+                }
             }
+            
+            set.Clear();
 
             return true;
         }
@@ -83,11 +131,11 @@ namespace R6ThreadECS.Systems
         public int Count => _systemInfos.Count;
 
         [PublicAPI]
-        public void SetOwner(R6World r6World)
+        public void SetOwner(tmp r6World)
         {
-            foreach (var r6SystemInfo in _systemInfos)
+            foreach (var systemInfo in _systemInfos)
             {
-                // r6SystemInfo.System.SetOwner(r6World);
+                systemInfo.SystemImpl.SetOwner(r6World);
             }
         }
         
@@ -99,9 +147,8 @@ namespace R6ThreadECS.Systems
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                throw new NotImplementedException();
 
-                // return _systemInfos[index];
+                return _systemInfos[index].SystemImpl;
             }
         }
 

@@ -15,35 +15,34 @@ namespace R6ThreadECS.Systems
     public class R6ParallelGroupEnumerator : IEnumerator<R6EcsSystem>
     {
         private R6ParallelGroup _collection;
-        private int curIndex;
-        private R6EcsSystem curBox;
+        private int _currentIndex;
 
         public R6ParallelGroupEnumerator(R6ParallelGroup collection)
         {
             _collection = collection;
-            curIndex = -1;
-            curBox = default;
+            _currentIndex = -1;
+            Current = default;
         }
 
         public bool MoveNext()
         {
             //Avoids going beyond the end of the collection.
-            if (++curIndex >= _collection.Count)
+            if (++_currentIndex >= _collection.Count)
             {
                 return false;
             }
             
             // Set current box to next item in collection.
-            curBox = _collection[curIndex];
+            Current = _collection[_currentIndex];
             return true;
         }
 
-        public void Reset() { curIndex = -1; }
+        public void Reset() { _currentIndex = -1; }
 
-        void IDisposable.Dispose() { }
-
-        public R6EcsSystem Current => curBox;
+        public R6EcsSystem Current { get; private set; }
 
         object IEnumerator.Current => Current;
+
+        void IDisposable.Dispose() { }
     }
 }

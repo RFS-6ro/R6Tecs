@@ -3,7 +3,11 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
+using R6ThreadECS.Attributes;
 using R6ThreadECS.Filters;
 using R6ThreadECS.World;
 
@@ -12,37 +16,44 @@ namespace R6ThreadECS.Systems
     /// <summary>
     /// Base for all systems
     /// </summary>
-    public abstract class R6EcsSystem
+    public abstract class R6EcsSystem : IDisposable
     {
-        protected R6World World;
-        protected R6EntityFilter Filter;
-
-
-
+        private int _filterId;
         
+        private bool _isDisposed = false;
         
+        protected tmp World;
+        
+        protected R6EntityFilter Filter
+        {
+            get
+            {
+                if (_isDisposed)
+                {
+                    return null;
+                }
+                
+                return World.Filters.ElementAt(_filterId);
+            }
+        }
+        
+        [PublicAPI]
+        public bool IsDisposed => _isDisposed;
         
         
         protected int CurrentExecutionFrame { get; private set; }
 
-        public void SetFrameData(R6EntityFilter filter, int currentExecutionFrame)
-        {
-            if (filter == null)
-            {
-                throw new System.NotSupportedException();
-            }
+        [PublicAPI]
+        public void SetFilterId(int id) => _filterId = id;
 
-            if (currentExecutionFrame <= CurrentExecutionFrame)
+        [PublicAPI]
+        public void SetOwner(tmp owner)
+        {
+            if (_isDisposed)
             {
-                throw new System.NotSupportedException();
+                return;
             }
             
-            Filter = filter;
-            Filter.Lock();
-        }
-
-        public void SetOwner(R6World owner)
-        {
             if (owner == null)
             {
                 throw new System.NotSupportedException();
@@ -54,6 +65,19 @@ namespace R6ThreadECS.Systems
             }
             
             World = owner;
+        }
+
+        [PublicAPI]
+        public virtual void Dispose()
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+            
+            World = null;
+
+            _isDisposed = true;
         }
     }
 }

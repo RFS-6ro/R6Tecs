@@ -21,11 +21,11 @@ namespace R6ThreadECS.Examples
         {
             foreach (R6Entity entity in Filter)
             {
-                CTransform transform = entity.GetComponent<CTransform>();
-                CRotation rotation = entity.GetComponent<CRotation>();
+                CTransform transform = entity.Get<CTransform>();
+                CRotation rotation = entity.Get<CRotation>();
                 
-                entity.SetComponent(new CTransform(transform.Position + 10f * Vector3.forward));
-                entity.SetComponent(new CRotation(rotation.Quaternion * Quaternion.Euler(10f * Vector3.left)));
+                entity.Set(new CTransform(transform.Position + 10f * Vector3.forward));
+                entity.Set(new CRotation(rotation.Quaternion * Quaternion.Euler(10f * Vector3.left)));
             }
         }
     }
