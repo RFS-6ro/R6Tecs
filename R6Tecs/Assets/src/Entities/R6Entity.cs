@@ -3,9 +3,11 @@
 // Copyright (c) 2022-2022 RFS_6ro <rfs6ro@gmail.com>
 // ----------------------------------------------------------------------------
 
-using System.Collections.Generic;
+using System;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using R6ThreadECS.Components;
+using R6ThreadECS.Utils;
 using R6ThreadECS.World;
 
 namespace R6ThreadECS.Entity
@@ -13,87 +15,234 @@ namespace R6ThreadECS.Entity
     /// <summary>
     /// components container
     /// </summary>
-    public struct R6Entity
+    public struct R6Entity : IDisposable
     {
-        private readonly R6World _world;
-        private readonly int _id;
+        private tmp _world;
+        private int _id;
         
-        public List<int> Components;
+        public ResizeableArray<int> ComponentTypes;
+        public ResizeableArray<int> Components;
+        
+        private bool _isDisposed;
 
-        public R6Entity(R6World world, int id)
+        public R6Entity(tmp world, int id)
         {
             if (world == null)
             {
+                _isDisposed = true;
                 throw new System.NotSupportedException();
             }
             
+            _isDisposed = false;
+            
             _world = world;
             _id = id;
-            Components = new List<int>();
-        }
-
-        [PublicAPI]
-        public T GetComponent<T>()
-            where T : struct, IR6EcsComponent<T>
-        {
-            int index = SearchComponent<T>(out T? component);
-            return component ?? new T(); //TODO: replace new T() with other construction
+            ComponentTypes = new ResizeableArray<int>();
+            Components = new ResizeableArray<int>();
         }
         
         [PublicAPI]
-        public bool HasComponent<T>()
+        public int Id => _id;
+        
+        [PublicAPI]
+        public int ComponentsCount => ComponentTypes.Count;
+
+        [PublicAPI]
+        public tmp World => _world;
+
+        [PublicAPI]
+        public bool IsDisposed => _isDisposed;
+
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Get<T>()
             where T : struct, IR6EcsComponent<T>
         {
-            return SearchComponent<T>(out _) == -1;
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int typeId = ComponentsMapper<T>.Id;
+            int localId = Search(typeId);
+            if (localId == -1)
+            {
+                Add(default(T));
+            }
+
+            return ref _world.GetOrAddPool<T>().GetRef(Components[localId]);
+        }
+        
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void Set<T>(T component)
+            where T : struct, IR6EcsComponent<T>
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int typeId = ComponentsMapper<T>.Id;
+            int localId = Search(typeId);
+            if (localId == -1)
+            {
+                Add(component);
+                return;
+            }
+
+            _world.GetOrAddPool<T>().Set(Components[localId], component);
+        }
+        
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void AddSafe<T>(T component)
+            where T : struct, IR6EcsComponent<T>
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            if (Has<T>()) { return; }
+            Add(component);
+        }
+        
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void Add<T>(T component)
+            where T : struct, IR6EcsComponent<T>
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int typeId = ComponentsMapper<T>.Id;
+            R6ComponentPool<T> pool = _world.GetOrAddPool<T>();
+            int poolId = pool.Alloc(component);
+            int localId = ComponentTypes.Add(typeId);
+            Components.AssertIndex(localId);
+            Components[localId] = poolId;
+            _world.UpdateFilters(typeId, this);
         }
 
-        public int SearchComponent<T>(out T? component)
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Remove<T>()
             where T : struct, IR6EcsComponent<T>
         {
-            for (int i = 0; i < Components.Count; i++)
+            if (_isDisposed)
             {
-                int componentId = Components[i];
-                if (_world.TryGetComponent(componentId, out component))
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int typeId = ComponentsMapper<T>.Id;
+            Remove(typeId);
+        }
+
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Remove(int typeId)
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int localId = Search(typeId);
+            if (localId == -1)
+            {
+                _world.CheckLeak(this);
+                return;
+            }
+
+            _world.GetPool(typeId).Store(Components[localId]);
+            ComponentTypes.Remove(localId);
+            Components.Remove(localId);
+            
+            _world.UpdateFilters(typeId, this);
+            _world.CheckLeak(this);
+        }
+        
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public int Search<T>()
+            where T : struct, IR6EcsComponent<T>
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int typeId = ComponentsMapper<T>.Id;
+            return Search(typeId);
+        }
+
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public int Search(int typeId)
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            for (int i = 0; i < ComponentTypes.Count; i++)
+            {
+                if (ComponentTypes[i] == typeId)
                 {
-                    return componentId;
+                    return i;
                 }
             }
 
-            component = null;
             return -1;
         }
+        
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public bool Has<T>()  where T : struct, IR6EcsComponent<T> => Search<T>() != -1;
 
-        [PublicAPI]
-        public void SetComponent<T>(T component)
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ComponentData<T> Access<T>()
             where T : struct, IR6EcsComponent<T>
         {
-            throw new System.NotImplementedException();
-            // T componentInMemory = default;
-            //
-            // componentInMemory.Write(component);
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException("R6Entity");
+            }
+            
+            int typeId = ComponentsMapper<T>.Id;
+            
+            int localId = Search(typeId);
+            if (localId == -1)
+            {
+#if DEBUG
+                throw new AccessViolationException();       
+#endif
+                return default;
+            }
+
+            return _world.GetOrAddPool<T>().Access(Components[localId]);
         }
 
-        [PublicAPI]
-        public void DeleteComponent<T>(T component)
-            where T : struct, IR6EcsComponent<T>
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Dispose()
         {
-            int id = SearchComponent<T>(out _);
-            if (id == -1)
+            if (_isDisposed)
             {
                 return;
             }
             
+            for (int i = ComponentTypes.Count - 1; i >= 0 ; --i)
+            {
+                Remove(ComponentTypes[i]);
+            }
             
-            throw new System.NotImplementedException();
+            _world.CheckLeak(this);
+            _world = null;
+            _id = -1;
+            _isDisposed = true;
         }
-        
+
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static bool operator == (in R6Entity l, in R6Entity r) =>
-            l._id == r._id && l.Components.Count == r.Components.Count;
+            l._id == r._id && l.ComponentTypes.Count == r.ComponentTypes.Count;
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static bool operator != (in R6Entity l, in R6Entity r) =>
-            l._id != r._id || l.Components.Count != r.Components.Count;
+            l._id != r._id || l.ComponentTypes.Count != r.ComponentTypes.Count;
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode() =>
@@ -102,5 +251,9 @@ namespace R6ThreadECS.Entity
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public override bool Equals(object other) =>
             other is R6Entity otherEntity && Equals(otherEntity);
+        
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public bool Equals(R6Entity other) => 
+            _id == other._id && _world == other._world;
     }
 }
