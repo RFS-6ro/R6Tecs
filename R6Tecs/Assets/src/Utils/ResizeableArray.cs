@@ -5,23 +5,26 @@
 
 using System;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 namespace R6ThreadECS.Utils
 {
-    public class ResizeableArray<T>
+    public class ResizeableArray<T> : IDisposable
     {
         private T[] _items;
 
-        private int _length;
+        private int _count;
         
-        private bool _isIsLocked;
+        private bool _isIsLocked = false;
+        
+        private bool _isDisposed = false;
 
         public ResizeableArray(int capacity = 256, Func<int, T> getNewItem = null)
         {
             capacity = capacity > 0 ? capacity : 256;
 
             _items = new T[capacity];
-            _length = 0;
+            _count = 0;
 
             if (getNewItem == null)
             {
@@ -34,56 +37,80 @@ namespace R6ThreadECS.Utils
             }
         }
 
+        [PublicAPI]
+        public bool IsDisposed => _isDisposed;
+        
+        [PublicAPI]
         public int Capacity => _items.Length;
         
-        public int Length => _length;
+        [PublicAPI]
+        public int Count => _count;
         
+        [PublicAPI]
         public bool IsLocked => _isIsLocked;
 
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public int Add(T item)
         {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException($"ResizeableArray<{typeof(T)}>");
+            }
+            
             if (_isIsLocked)
             {
 #if DEBUG
                 throw new NotSupportedException();
 #else
-                return;
+                return -1;
 #endif
             }
             
-            if (_length == Capacity)
+            if (_count == Capacity)
             {
-                Array.Resize (ref _items, _items.Length << 1);
+                Resize(_items.Length << 1);
             }
 
-            _items[_length] = item;
+            _items[_count] = item;
             
-            return _length++;
+            return _count++;
         }
 
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool Remove(int index)
         {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException($"ResizeableArray<{typeof(T)}>");
+            }
+            
             if (_isIsLocked)
             {
                 return false;
             }
             
-            if (index < 0 || index >= _length)
+            if (index < 0 || index >= _count)
             {
                 return false;
             }
 
-            for (int i = index; i < _length - 1; i++)
+            for (int i = index; i < _count - 1; i++)
             {
                 _items[i] = _items[i + 1];
             }
 
-            _length--;
+            _count--;
             return true;
         }
 
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool Remove(int index, out T element)
         {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException($"ResizeableArray<{typeof(T)}>");
+            }
+            
             element = default(T);
             
             if (_isIsLocked)
@@ -91,24 +118,30 @@ namespace R6ThreadECS.Utils
                 return false;
             }
             
-            if (index < 0 || index >= _length)
+            if (index < 0 || index >= _count)
             {
                 return false;
             }
 
             element = _items[index];
             
-            for (int i = index; i < _length; i++)
+            for (int i = index; i < _count; i++)
             {
                 _items[i] = _items[i + 1];
             }
 
-            _length--;
+            _count--;
             return true;
         }
 
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool Has(T item)
         {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException($"ResizeableArray<{typeof(T)}>");
+            }
+            
             foreach (var item1 in _items)
             {
                 if (item1.Equals(item))
@@ -120,27 +153,57 @@ namespace R6ThreadECS.Utils
             return false;
         }
         
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void Lock()
         {
             _isIsLocked = true;
         }
 
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void Unlock()
         {
             _isIsLocked = false;
         }
 
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        [PublicAPI, MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref T GetRef(int index)
         {
             return ref _items[index];
         }
 
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Resize(int newLength)
+        {
+            Array.Resize(ref _items, newLength);
+        }
+
+        [PublicAPI, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void AssertIndex(int index)
+        {
+            if (index < _count)
+            {
+                return;
+            }
+            
+            int newLength = _count;
+            while (newLength <= index)
+            {
+                newLength <<= 1;
+            }
+            Resize(newLength);
+        }
+        
+        [PublicAPI]
         public T this[int index]
         {
             get
             {
-                if (index < 0 || index >= _length)
+                if (_isDisposed)
+                {
+                    throw new ObjectDisposedException($"ResizeableArray<{typeof(T)}>");
+                }
+                
+                if (index < 0 || index >= _count)
                 {
                     throw new ArgumentOutOfRangeException();
                 }
@@ -149,6 +212,15 @@ namespace R6ThreadECS.Utils
             }
             set
             {
+                if (_isDisposed)
+                {
+#if DEBUG
+                    throw new ObjectDisposedException($"ResizeableArray<{typeof(T)}>");
+#else
+                    return;
+#endif
+                }
+                
                 if (_isIsLocked)
                 {
 #if DEBUG
@@ -158,13 +230,26 @@ namespace R6ThreadECS.Utils
 #endif
                 }
                 
-                if (index < 0 || index >= _length)
+                if (index < 0 || index >= _count)
                 {
                     throw new ArgumentOutOfRangeException();
                 }
 
                 _items[index] = value;
             }
+        }
+
+        [PublicAPI]
+        public void Dispose()
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+            
+            Array.Clear(_items, 0, Capacity);
+            _items = null;
+            _isDisposed = true;
         }
     }
 }

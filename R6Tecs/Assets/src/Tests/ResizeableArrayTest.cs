@@ -15,13 +15,13 @@ namespace R6ThreadECS.Utils.Tests
         {
             ResizeableArray<int> array = new ResizeableArray<int>(4);
             
-            Assert.IsTrue(array.Length == 0);
+            Assert.IsTrue(array.Count == 0);
             Assert.IsTrue(array.Capacity == 4);
 
             for (int i = 0; i < 4; i++)
             {
                 array.Add(i);
-                Assert.IsTrue(array.Length == i + 1);
+                Assert.IsTrue(array.Count == i + 1);
             }
 
             for (int i = 0; i < 4; i++)
@@ -31,11 +31,11 @@ namespace R6ThreadECS.Utils.Tests
             
             array.Add(4);
             
-            Assert.IsTrue(array.Length == 5);
+            Assert.IsTrue(array.Count == 5);
             Assert.IsTrue(array.Capacity == 8);
 
             array.Remove(0);
-            Assert.IsTrue(array.Length == 4);
+            Assert.IsTrue(array.Count == 4);
             Assert.IsTrue(array.Capacity == 8);
 
             for (int i = 0; i < 4; i++)
@@ -44,7 +44,7 @@ namespace R6ThreadECS.Utils.Tests
             }
 
             array.Remove(0, out int value);
-            Assert.IsTrue(array.Length == 3);
+            Assert.IsTrue(array.Count == 3);
             Assert.IsTrue(array.Capacity == 8);
             Assert.IsTrue(value == 1);
 
