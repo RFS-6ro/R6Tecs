@@ -1,15 +1,25 @@
 # R6Tecs
 WIP Thread based Entity Component System
 
-**Ready:**
-* Parallelizing tasks with dependencies;
-* Ecs basic architecture;
-* Attribute filtering;
-* Examples
+- [x] Basic Elements Architecture
+- [x] Basic Elements Tests
+- [x] Components
+- [x] ComponentPool
+- [x] ComponentRef
+- [ ] Entity
+- [x] Attribute Filtering
+- [ ] Systems
+- [ ] Filters
+- [ ] World +-
+- [ ] Strategies
+- [ ] Exceptions
+- [ ] Logs
+- [ ] ECS Architecture Tests
+- [ ] Parallelization Tests
+- [ ] Optimisation
+- [ ] Polishing
+- [ ] IL2CPP Support
+- [ ] Final Tests
+- [ ] Examples
+- [ ] Documentation
 
-**Left: **
-* Components filtration and to system pass;
-* Logs and optimisation;
-* Complex example
-* Entity instancing and components update
-* 
