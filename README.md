@@ -6,7 +6,7 @@ WIP Thread based Entity Component System
 - [x] Components
 - [x] ComponentPool
 - [x] ComponentRef
-- [ ] Entity
+- [x] Entity
 - [x] Attribute Filtering
 - [ ] Systems
 - [ ] Filters
