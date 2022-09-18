@@ -76,3 +76,5 @@ crashlytics-build.properties
 /R6Tecs/Logs
 /R6Tecs/.idea
 /R6Tecs/obj
+/R6Tecs/ProjectSettings
+/R6Tecs/Packages
