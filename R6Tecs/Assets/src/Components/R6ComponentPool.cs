@@ -8,9 +8,11 @@ using R6ThreadECS.Utils;
 
 namespace R6ThreadECS
 {
-    public interface IR6ComponentPool
+    public interface IR6ComponentPool : IDisposable
     {
         Type TargetType { get; }
+        
+        void Store(int component);
     }
 
     public class R6ComponentPool<T> : PoolArray<T>, IR6ComponentPool where T : struct, IR6EcsComponent<T>
@@ -23,5 +25,7 @@ namespace R6ThreadECS
         }
 
         public Type TargetType => _targetType;
+
+        public ComponentData<T> Access(int id) => new ComponentData<T>(id, this);
     }
 }
