@@ -16,6 +16,7 @@ WIP Thread based Entity Component System
 - [ ] Logs
 - [ ] ECS Architecture Tests
 - [ ] Parallelization Tests
+- [ ] Custom Debug Editors
 - [ ] Optimisation
 - [ ] Polishing
 - [ ] IL2CPP Support
